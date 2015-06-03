@@ -4,6 +4,7 @@
 build.properties
 salesforce.schema
 Referenced Packages
+/config
 /uninstall
 /uninstallsrc
 /installdeploy
@@ -13,4 +14,5 @@ unpackaged/namespaced_zipped
 unpackaged/zipped
 unpackaged_stage
 packaged
+*.sublime*
 .*.swp
