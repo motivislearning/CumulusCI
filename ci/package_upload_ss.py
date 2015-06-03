@@ -225,17 +225,6 @@ class PackageUpload(object):
         return driver
 
 def package_uploader():
-    oauth_client_id = os.environ.get('OAUTH_CLIENT_ID')
-    oauth_client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
-    oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL')
-    instance_url = os.environ.get('INSTANCE_URL')
-    refresh_token = os.environ.get('REFRESH_TOKEN')
-    package = os.environ.get('PACKAGE')
-    build_name = os.environ.get('BUILD_NAME')
-    build_commit = os.environ.get('BUILD_COMMIT')
-    build_workspace = os.environ.get('BUILD_WORKSPACE')
-    selenium_url = os.environ.get('SELENIUM_URL', 'http://127.0.0.1:4444/wd/hub')
-    
     uploader = PackageUpload(instance_url, refresh_token, package, oauth_client_id, oauth_client_secret, oauth_callback_url, selenium_url)
 
     return uploader, build_name
@@ -257,17 +246,20 @@ def package_upload(uploader, build_name):
 
 if __name__ == '__main__':
     try:
+        oauth_client_id = os.environ.get('OAUTH_CLIENT_ID')
+        oauth_client_secret = os.environ.get('OAUTH_CLIENT_SECRET')
+        oauth_callback_url = os.environ.get('OAUTH_CALLBACK_URL')
+        instance_url = os.environ.get('INSTANCE_URL')
+        refresh_token = os.environ.get('REFRESH_TOKEN')
+        package = os.environ.get('PACKAGE')
+        build_workspace = os.environ.get('BUILD_WORKSPACE')
+        build_name = os.environ.get('BUILD_NAME')
+        build_commit = os.environ.get('BUILD_COMMIT')
+        selenium_url = os.environ.get('SELENIUM_URL', 'http://127.0.0.1:4444/wd/hub')
+    
         uploader, build_name = package_uploader()
         package_upload(uploader, build_name)
     except:
-        # Try to capture a selenium screenshot
-        print 'Attempting to capture screenshot...'
-        if hasattr(uploader, 'driver'):
-            uploader.driver.get_screenshot_as_file('error-screenshot.png')
-            print 'Created error-screenshot.png'
-        else:
-            print 'Screenshot failed'
-       
         # Print the traceback 
         import traceback
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -276,3 +268,11 @@ if __name__ == '__main__':
         print '-'*60
         sys.exit(1)
 
+        # Try to capture a selenium screenshot
+        print 'Attempting to capture screenshot...'
+        if hasattr(uploader, 'driver'):
+            uploader.driver.get_screenshot_as_file('error-screenshot.png')
+            print 'Created error-screenshot.png'
+        else:
+            print 'Screenshot failed'
+       
