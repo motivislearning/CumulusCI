@@ -228,7 +228,8 @@ if [ $BUILD_TYPE == "master" ]; then
     export BUILD_COMMIT="$CI_COMMIT_ID"
     pip install --upgrade selenium
     pip install --upgrade requests
-
+    pip install requests[security]
+    
     echo 
     echo
     echo "Running package_upload.py"
