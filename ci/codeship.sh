@@ -228,7 +228,7 @@ if [ $BUILD_TYPE == "master" ]; then
     export BUILD_COMMIT="$CI_COMMIT_ID"
     pip install --upgrade selenium
     pip install --upgrade requests
-    apt-get install python-dev libffi-dev libssl-dev
+    #apt-get install python-dev libffi-dev libssl-dev
     pip install --upgrade ndg-httpsclient 
     #pip install requests[security]
     #pip install pyopenssl ndg-httpsclient pyasn1
