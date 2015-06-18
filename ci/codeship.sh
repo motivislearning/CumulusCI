@@ -229,6 +229,7 @@ if [ $BUILD_TYPE == "master" ]; then
     pip install --upgrade selenium
     pip install --upgrade requests
     pip install requests[security]
+    pip install --upgrade ndg-httpsclient 
     
     echo 
     echo
