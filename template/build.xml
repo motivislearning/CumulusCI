@@ -24,7 +24,7 @@
 
         If you are on a unix based system, the following commands should work:
 
-            git clone https://github.com/SalesforceFoundation/CumulusCI ~/CumulusCI
+            git clone https://github.com/motivislearning/CumulusCI ~/CumulusCI
             export CUMULUSCI_PATH=~/CumulusCI
     </fail>
     
