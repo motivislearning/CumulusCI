@@ -17,6 +17,9 @@ fi
 if [ "$PREFIX_RELEASE" == "" ]; then
     export PREFIX_RELEASE='release/'
 fi
+if [ "$QA_BRANCH" == "" ]; then
+    export QA_BRANCH='qa'
+fi
 
 # Determine build type and setup Salesforce credentials
 if [[ $CI_BRANCH == $MASTER_BRANCH ]]; then
@@ -27,6 +30,8 @@ elif [[ $CI_BRANCH == $PREFIX_BETA* ]]; then
     BUILD_TYPE='beta'
 elif [[ $CI_BRANCH == $PREFIX_RELEASE* ]]; then
     BUILD_TYPE='release'    
+elif [[ $CI_BRANCH == $QA_BRANCH ]]; then
+    BUILD_TYPE='qa'    
 fi
 
 if [ "$BUILD_TYPE" == "" ]; then
@@ -374,6 +379,36 @@ elif [ $BUILD_TYPE == "feature" ]; then
     # Deploy to feature org
     echo "Running ant deployCI"
     runAntTarget deployCI
+    if [[ $? != 0 ]]; then exit 1; fi
+
+# Dev/QA branch commit, build and test in unmanaged package in QA org, in persistent way
+elif [ $BUILD_TYPE == "qa" ]; then
+    # Set the APEX_TEST_NAME_* environment variables for the build type
+    if [ "$APEX_TEST_NAME_MATCH_QA" != "" ]; then
+        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_QA
+    elif [ "$APEX_TEST_NAME_MATCH_GLOBAL" != "" ]; then
+        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_GLOBAL
+    else
+        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_CUMULUSCI
+    fi
+    if [ "$APEX_TEST_NAME_EXCLUDE_QA" != "" ]; then
+        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_QA
+    elif [ "$APEX_TEST_NAME_EXCLUDE_GLOBAL" != "" ]; then
+        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_GLOBAL
+    else
+        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_CUMULUSCI
+    fi
+    
+    # Get org credentials from env
+    export SF_USERNAME=$SF_USERNAME_QA
+    export SF_PASSWORD=$SF_PASSWORD_QA
+    export SF_SERVERURL=$SF_SERVERURL_QA
+    
+    echo "Got org credentials for qa org from env"
+    
+    # Deploy to feature org
+    echo "Running ant deployCIqaOrg"
+    runAntTarget deployCIqaOrg
     if [[ $? != 0 ]]; then exit 1; fi
 
 # Beta tag build, do nothing

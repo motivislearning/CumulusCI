@@ -693,6 +693,8 @@ project.setProperty("downgradePackage", result);
                   <not><contains string="@{line}" substring="CustomLabels::" /></not>
                   <!-- Skip SControls since they may need to stay in some orgs due to legacy issues -->
                   <not><contains string="@{line}" substring="Scontrol::" /></not>
+                   <!-- Skip SiteTemplate as some of our products have been package with the file name already in use. We renamed the file in the unmanaged packages because trying to delete this reserved name causes failure in CI deploy...now we need to ignore it in package org -->
+                  <not><equals string="@{line}" substring="ApexPage::SiteTemplate" /></not>
                 </and>
                 <then>
                   <!-- Parse type and member name from string in format TYPE::MEMBERNAME -->

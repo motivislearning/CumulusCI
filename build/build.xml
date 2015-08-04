@@ -276,6 +276,50 @@
         <antcall target="postDeployCI" />
     </target>
 
+<!-- deployCIqaOrg: Does an incremental build against the QA org.  This differs from deployCI in that it uses destroyStaleMetadata instead of uninstall. As a result, it will not gracefully handle 
+rolling back merged features....so the QA branch is essentially a "dev" branch org -->
+    <target name="deployCIqaOrg">
+        <echo>============================================================================</echo>
+        <antcall target="preDeployCI" />
+
+        <!-- Create the unmanaged package if it doesn't already exist -->
+        <antcall target="createUnmanagedPackage" />
+
+        <!-- Uninstall all unpackaged code from the target org.  We have to do this first so we can uninstall and reinstall any managed packages not at the right version -->
+        <trycatch>
+            <try>
+                <antcall target="destroyStaleMetadata" />
+            </try>
+            <catch>
+                <echo>First run of destroyStaleMetadata failed.  Ignoring for now but it may cause build failures in other targets.</echo>
+            </catch>
+        </trycatch>
+
+        <!-- Update any managed packages which are not at the right version -->
+        <antcall target="updateRequiredPackages" />
+
+        <!-- Deploy any unpackaged metadata bundles needed before the deployment -->
+        <antcall target="deployUnpackagedPre" />
+
+        <!-- Deploy the src directory -->
+        <antcall target="deployWithoutTest" />
+        
+        <!-- Finally, delete any metadata from the org which is not in the repo -->
+        <antcall target="destroyStaleMetadata" />
+        
+        <!-- Deploy any unpackaged metadata bundles needed after the deployment -->
+        <antcall target="deployUnpackagedPost" />
+
+        <!-- Run all tests -->
+        <antcall target="runAllTests" />
+
+        <!-- Uninstall unpackaged post bundles since they may reference code in the package -->
+        <antcall target="uninstallUnpackagedPost" />
+
+        <antcall target="postDeployCI" />
+    </target>
+
+
     <!-- deployCIPackageOrg: Does a full build against the package org.  This differs from deployCI in that it uses destroyStaleMetadata instead of uninstall.
              There are a few assumptions.  We never downgrade a dependent managed package in the packaging org.  This removes the need to completely remove
              all metadata to allow a package downgrade.  In the package org, we can't delete all metadata once a production managed release is cut so this approach is required -->
