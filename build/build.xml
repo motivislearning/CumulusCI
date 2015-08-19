@@ -978,7 +978,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
     </target>
 
     <target name="reset.formulas">
-        <xslt failOnNoResources="false" destdir="uninstallsrc" style="xslt${file.separator}reset.formulas.xslt" extension=".reset" useImplicitFileset="false" force="true">
+        <xslt failOnNoResources="false" destdir="uninstallsrc" style="${cumulus_ci.basedir}/xsl/reset.formulas.xslt" extension=".reset" useImplicitFileset="false" force="true">
             <fileset dir="uninstallsrc" includes="objects${file.separator}*.object">
                 <containsregexp expression="&lt;formula&gt;.*&lt;/formula&gt;" multiline="true"/>
             </fileset>
