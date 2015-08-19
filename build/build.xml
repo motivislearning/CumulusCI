@@ -548,6 +548,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <delete dir="uninstallsrc" />
         <delete dir="uninstall" />
         <retrievePackaged dir="uninstallsrc" package="${cumulusci.package.name}" />
+        <antcall target="reset.formulas" />
         <buildPackagedDestructiveChanges srcdir="uninstallsrc" dir="uninstall" package="${cumulusci.package.name}" />
         <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" runAllTests="false" purgeOnDelete="true" maxPoll="${cumulusci.maxPoll.notest}" />
         <delete dir="uninstallsrc" />
@@ -976,4 +977,16 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <echo>Nothing to do for postDeployManagedBeta</echo>
     </target>
 
+    <target name="reset.formulas">
+        <xslt failOnNoResources="false" destdir="uninstallsrc" style="xslt${file.separator}reset.formulas.xslt" extension=".reset" useImplicitFileset="false" force="true">
+            <fileset dir="uninstallsrc" includes="objects${file.separator}*.object">
+                <containsregexp expression="&lt;formula&gt;.*&lt;/formula&gt;" multiline="true"/>
+            </fileset>
+        </xslt>
+        <move todir="uninstallsrc">
+            <globmapper from="*.reset" to="*.object"/>
+            <fileset dir="uninstallsrc" includes="objects${file.separator}*.reset"/>
+        </move>
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstallsrc" runAllTests="false" purgeOnDelete="true" maxPoll="${cumulusci.maxPoll.notest}" />
+    </target>
 </project>
