@@ -27,4 +27,6 @@
 		<xsl:value-of select="'&quot;&quot;'"/>
 	</xsl:template>
 
+	<xsl:template match="/sf:CustomObject/sf:fields/sf:lookupFilter"/>
+
 </xsl:stylesheet>
