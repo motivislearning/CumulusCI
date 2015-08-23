@@ -255,6 +255,13 @@ project.setProperty("downgradePackage", result);
         serverurl="${sf.serverurl}" 
         retrieveTarget="@{dir}" 
         packageNames="@{package}"/>
+        <xslt failOnNoResources="false" basedir="@{dir}" destdir="@{dir}" style="${cumulus_ci.basedir}/xsl/blacklistpermissions.xslt" extension=".reset" useImplicitFileset="false" force="true">
+            <fileset dir="@{dir}" includes="permissionsets${file.separator}*.permissionset"/>
+        </xslt>
+        <move todir="@{dir}">
+            <globmapper from="*.reset" to="*.permissionset"/>
+            <fileset dir="@{dir}" includes="permissionsets${file.separator}*.reset"/>
+        </move>
     </sequential>
   </macrodef>
 
