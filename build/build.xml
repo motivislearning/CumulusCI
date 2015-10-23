@@ -108,6 +108,17 @@
       </else>
     </if>
 
+    <!-- Allow PURGE_ON_DELETE environment variable to override cumulusci.destroy.purgeondelete -->
+    <if>
+      <isset property="env.PURGE_ON_DELETE" />
+      <then>
+        <var name="cumulusci.destroy.purgeondelete" value="${env.PURGE_ON_DELETE}" />
+      </then>
+      <else>
+        <property name="cumulusci.destroy.purgeondelete" value="true" />
+      </else>
+    </if>
+
     <!-- Setup a blank namespace prefix string.  Managed deployments need to override this property before calling deployUnpackagedPost -->
     <property name="cumulusci.namespace.prefix" value="" />
     
@@ -119,7 +130,7 @@
         <antcall target="deployWithoutTest" />
         <antcall target="runAllTests" />
         <!-- Changed to deploy then test due to suspicion that staging the deployment to run tests was causing a failure with every other build
-          <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="src" runAllTests="true" maxPoll="${cumulusci.maxPoll.test}" />
+          <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="src" testLevel="RunLocalTests" maxPoll="${cumulusci.maxPoll.test}" />
           -->
     </target>
 
@@ -127,7 +138,7 @@
     <target name="deployWithoutTest">
         <echo>----------------------------------------------------------------------------</echo>
         <antcall target="preDeploy" />
-        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="src" runAllTests="false" maxPoll="${cumulusci.maxPoll.notest}" />
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="src" maxPoll="${cumulusci.maxPoll.notest}" />
         <antcall target="postDeploy" />
     </target>
 
@@ -183,7 +194,7 @@
                         <echo>Uninstalling unpackaged bundle @{dir}</echo>
                         <delete dir="uninstall" />
                         <buildPackagedDestructiveChanges srcdir="@{dir}" dir="uninstall" package="${cumulusci.package.name}" />
-                        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" runAllTests="false" purgeOnDelete="true" ignoreWarnings="true" maxPoll="${cumulusci.maxPoll.notest}" />
+                        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" purgeOnDelete="${cumulusci.destroy.purgeondelete}" ignoreWarnings="true" maxPoll="${cumulusci.maxPoll.notest}" />
                         <delete dir="uninstall" />
                     </sequential>
                 </for>
@@ -208,7 +219,7 @@
                         <echo>Uninstalling unpackaged bundle @{dir}</echo>
                         <delete dir="uninstall" />
                         <buildPackagedDestructiveChanges srcdir="@{dir}" dir="uninstall" package="${cumulusci.package.name}" />
-                        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" runAllTests="false" purgeOnDelete="true" ignoreWarnings="true" maxPoll="${cumulusci.maxPoll.notest}" />
+                        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" purgeOnDelete="${cumulusci.destroy.purgeondelete}" ignoreWarnings="true" maxPoll="${cumulusci.maxPoll.notest}" />
                         <delete dir="uninstall" />
                     </sequential>
                 </for>
@@ -491,13 +502,19 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <!-- Since we want to use the versions required by the tag rather than the currently checked out code, unset all version properties and load the version.properties.prod file -->
         <var file="${basedir}/version.properties.prod" />
         <delete file="${basedir}/version.properties.prod" />
+        <var name="version.managed" value="${version.managed.prod}" />
+
+        <!-- Deploy any unpackaged metadata bundles needed before the deployment -->
+        <antcall target="deployManagedUnpackagedPre" />
 
         <!-- Run updateRequiredPackages to install the correct versions of required packages and the main package -->
         <antcall target="updateRequiredPackages" />
 
         <!-- Deploy any unpackaged metadata bundles needed for builds -->
-        <antcall target="deployUnpackagedPre" />
-        <antcall target="deployUnpackagedPost" />
+        <antcall target="deployManagedUnpackagedPost" />
+
+        <!-- Uninstall the unpackaged post bundles so they don't cause dependency issues in the next build -->
+        <antcall target="uninstallUnpackagedPost" />
 
         <antcall target="postDeployManaged" />
     </target>
@@ -516,7 +533,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <buildDestroyStaleMetadata srcdir="uninstallsrc" commdir="src" dir="uninstall" />
 
         <!-- deploy the destructiveChanges.xml package -->
-        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" runAllTests="false" purgeOnDelete="true" maxPoll="${cumulusci.maxPoll.notest}" />
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" purgeOnDelete="${cumulusci.destroy.purgeondelete}" maxPoll="${cumulusci.maxPoll.notest}" />
 
         <delete dir="uninstallsrc" />
         <delete dir="uninstall" />
@@ -534,7 +551,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <buildDestroyStaleMetadata srcdir="uninstallsrc" commdir="src" dir="uninstall" />
 
         <!-- deploy the destructiveChanges.xml package -->
-        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" runAllTests="false" purgeOnDelete="true" maxPoll="${cumulusci.maxPoll.notest}" />
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" purgeOnDelete="${cumulusci.destroy.purgeondelete}" maxPoll="${cumulusci.maxPoll.notest}" />
 
         <delete dir="uninstallsrc" />
         <delete dir="uninstall" />
@@ -543,6 +560,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
     <!-- uninstall: Removes all metadata from the package -->
     <target name="uninstall">
         <echo>----------------------------------------------------------------------------</echo>
+        <var name="cumulusci.destroy.purgeondelete" value="false" />
         <antcall target="preUninstall" />
         <antcall target="uninstallUnpackagedPost" />
         <delete dir="uninstallsrc" />
@@ -550,7 +568,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <retrievePackaged dir="uninstallsrc" package="${cumulusci.package.name}" />
         <antcall target="reset.formulas" />
         <buildPackagedDestructiveChanges srcdir="uninstallsrc" dir="uninstall" package="${cumulusci.package.name}" />
-        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" runAllTests="false" purgeOnDelete="true" maxPoll="${cumulusci.maxPoll.notest}" />
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall" purgeOnDelete="${cumulusci.destroy.purgeondelete}" maxPoll="${cumulusci.maxPoll.notest}" />
         <delete dir="uninstallsrc" />
         <delete dir="uninstall" />
         <antcall target="uninstallUnpackagedPre" />
@@ -564,8 +582,8 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <retrieveUnpackaged dir="uninstallsrc" />
         <deleteWhitelistedMetadata dir="uninstallsrc/unpackaged" />
         <buildUnpackagedDestructiveChanges srcdir="uninstallsrc" dir="uninstall" />
-        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall/standard" runAllTests="false" maxPoll="${cumulusci.maxPoll.notest}" />
-        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall/unpackaged" runAllTests="false" purgeOnDelete="true" maxPoll="${cumulusci.maxPoll.notest}" />
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall/standard" maxPoll="${cumulusci.maxPoll.notest}" />
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="uninstall/unpackaged" purgeOnDelete="${cumulusci.destroy.purgeondelete}" maxPoll="${cumulusci.maxPoll.notest}" />
         <delete dir="uninstallsrc" />
         <delete dir="uninstall" />
     </target>
@@ -700,6 +718,66 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <antcall target="postDeployCI" />
     </target>
 
+    <!-- deployUnmanagedEE: Does a full build including uninstalling previously deployed packaged code, updating managed package versions, and then deploying without running tests.  Use this target to quickly deploy the unmanaged code into a fresh DE org. -->
+    <!-- !!!WARNING!!!: DO NOT run this against a real production org as it will delete everything.  It is designed to clear the target org to ensure a clean development environment. -->
+    <target name="deployUnmanagedEE">
+        <echo>============================================================================</echo>
+        <antcall target="preDeployCI" />
+
+        <!-- Override the purgeOnDelete=true default since we can't do that in EE orgs -->
+        <var name="cumulus.destroy.purgeondelete" value="false" />
+
+        <!-- Create the unmanaged package if it doesn't already exist -->
+        <antcall target="createUnmanagedPackage" />
+
+        <!-- Uninstall all unpackaged code from the target org.  We have to do this first so we can uninstall and reinstall any managed packages not at the right version -->
+        <if>
+            <equals arg1="${cumulusci.unmanaged.destroy.mode}" arg2="full" />
+            <then>
+                <antcall target="uninstall" />
+            </then>
+            <else>
+                <!-- Attempt to destroy any stale metadata but continue even if this fails -->
+                <trycatch>
+                    <try>
+                        <antcall target="destroyStaleMetadata" />
+                    </try>
+                    <catch>
+                        <echo>First run of destroyStaleMetadata failed.  Ignoring for now but it may cause build failures in other targets.</echo>
+                    </catch>
+                </trycatch>
+            </else>
+        </if>
+
+        <!-- Update any managed packages which are not at the right version -->
+        <antcall target="updateRequiredPackages" />
+
+        <!-- Deploy any unpackaged metadata bundles needed before the deployment -->
+        <antcall target="deployUnpackagedPre" />
+
+        <!-- Prepare the unmanaged EE version of the src directory -->
+        <antcall target="createUnmanagedEESrc" />
+
+        <!-- Deploy src directory -->
+        <antcall target="deployWithoutTest" />
+
+        <!-- Revert the src directory -->
+        <antcall target="revertUnmanagedEESrc" />
+        
+        <if>
+            <not><equals arg1="${cumulusci.unmanaged.destroy.mode}" arg2="full" /></not>
+            <then>
+                <!-- Finally, delete any metadata from the org which is not in the repo -->
+                <antcall target="destroyStaleMetadata" />
+            </then>
+        </if>
+        
+        <!-- Deploy any unpackaged metadata bundles needed after the deployment -->
+        <antcall target="deployUnpackagedPost" />
+
+        <antcall target="postDeployCI" />
+    </target>
+
 
     <!-- retrieveUnpackaged: Retrieves all unpackaged metadata from target org into the unpackaged directory -->
     <target name="retrieveUnpackaged">
@@ -724,7 +802,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
                 <delete dir="${basedir}/create_package" />
                 <mkdir dir="${basedir}/create_package" />
                 <buildPackageXml package="${cumulusci.package.name}" version="${cumulusci.package.apiVersion}" srcDir="create_package" />
-                <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="create_package" runAllTests="false" maxPoll="${cumulusci.maxPoll.notest}" />
+                <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="create_package" maxPoll="${cumulusci.maxPoll.notest}" />
                 <delete dir="${basedir}/create_package" />
             </then>
         </if>
@@ -747,7 +825,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
                 </exec>
             </then>
             <else>
-                <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="${cumulus_ci.basedir}/empty" runAllTests="true" maxPoll="${cumulusci.maxPoll.test}" />
+                <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="${cumulus_ci.basedir}/empty" testLevel="RunLocalTests" maxPoll="${cumulusci.maxPoll.test}" />
             </else>
         </if>
     </target>
@@ -770,7 +848,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
                 </exec>
             </then>
             <else>
-                <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="${cumulus_ci.basedir}/empty" runAllTests="true" maxPoll="${cumulusci.maxPoll.test}" />
+                <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="${cumulus_ci.basedir}/empty" testLevel="RunAllTestsInOrg" maxPoll="${cumulusci.maxPoll.test}" />
             </else>
         </if>
     </target>
@@ -798,6 +876,22 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <updateMetaXmlApi dir="${basedir}/src" apiVersion="${cumulusci.package.apiVersion}" />
     </target>
 
+    <!-- Update the Admin.profile to grant all FLS permissions -->
+    <target name="deployUpdatedAdminProfile">
+        <echo>Retrieving Admin.profile</echo>
+        <retrieveAdminProfile dir="admin_profile" />
+
+        <echo>Granting read/edit FLS on all fields in Admin.profile</echo>
+        <updateAdminProfileGrantFLS dir="admin_profile" />
+
+        <antcall target="preDeployUpdatedAdminProfile" />
+
+        <echo>Deploying updated Admin.profile</echo>
+        <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" deployRoot="admin_profile" maxPoll="${cumulusci.maxPoll.notest}" />
+
+        <delete dir="admin_profile" />
+    </target>
+
     <!-- Run stripManagedToken against src for managed deployment -->
     <target name="createManagedSrc">
         <delete dir="src.orig" />
@@ -809,6 +903,23 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
 
     <!-- Revert the src directory from createManagedSrc -->
     <target name="revertManagedSrc">
+        <copy todir="src" preservelastmodified="true" overwrite="true">
+          <fileset dir="src.orig" />
+        </copy>
+        <delete dir="src.orig" />
+    </target>
+
+    <!-- Run prepareSrcForUnmanagedEE against src for unmanaged deployment to EE orgs -->
+    <target name="createUnmanagedEESrc">
+        <delete dir="src.orig" />
+        <copy todir="src.orig" preservelastmodified="true">
+          <fileset dir="src" />
+        </copy>
+        <prepareSrcForUnmanagedEE dir="src" />
+    </target>
+
+    <!-- Revert the src directory from createUnmanagedEESrc -->
+    <target name="revertUnmanagedEESrc">
         <copy todir="src" preservelastmodified="true" overwrite="true">
           <fileset dir="src.orig" />
         </copy>
@@ -975,6 +1086,10 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
     <!-- After deployManagedBeta -->
     <target name="postDeployManagedBeta">
         <echo>Nothing to do for postDeployManagedBeta</echo>
+    </target>
+    <!-- Before deployment is run in deployUpdatedAdminProfile -->
+    <target name="preDeployUpdatedAdminProfile">
+        <echo>Nothing to do for preDeployUpdatedAdminProfile</echo>
     </target>
 
     <target name="reset.formulas">
