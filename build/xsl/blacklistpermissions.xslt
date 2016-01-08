@@ -7,6 +7,6 @@
 	    </xsl:copy>
 	</xsl:template>
 
-	<xsl:template match="/sf:PermissionSet/sf:userPermissions[ sf:name = 'ManageSelfService' or sf:name = 'ManageEncryptionKeys' or sf:name = 'ViewEncryptedData' or sf:name = 'ApproveContract' or sf:name = 'EditPublicReports']"/>
+	<xsl:template match="/sf:PermissionSet/sf:userPermissions[ sf:name = 'ManageSelfService' or sf:name = 'ManageEncryptionKeys' or sf:name = 'ViewEncryptedData' or sf:name = 'ApproveContract' or sf:name = 'EditPublicReports' or sf:name = 'EditReports']"/>
 
 </xsl:stylesheet>
