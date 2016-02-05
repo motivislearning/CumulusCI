@@ -269,33 +269,33 @@ if [ $BUILD_TYPE == "master" ]; then
         export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_CUMULUSCI
     fi
 
-    export SF_USERNAME=$SF_USERNAME_BETA
-    export SF_PASSWORD=$SF_PASSWORD_BETA
-    export SF_SERVERURL=$SF_SERVERURL_BETA
-    echo "Got org credentials for beta org from env"
-    export PACKAGE_VERSION=`grep PACKAGE_VERSION package.properties | sed -e 's/PACKAGE_VERSION=//g'`
-    echo "Attempting install of $PACKAGE_VERSION"
+    #export SF_USERNAME=$SF_USERNAME_BETA
+    #export SF_PASSWORD=$SF_PASSWORD_BETA
+    #export SF_SERVERURL=$SF_SERVERURL_BETA
+    #echo "Got org credentials for beta org from env"
+    #export PACKAGE_VERSION=`grep PACKAGE_VERSION package.properties | sed -e 's/PACKAGE_VERSION=//g'`
+    #echo "Attempting install of $PACKAGE_VERSION"
 
-    tries=0
-    while [ $tries -lt $PACKAGE_AVAILABLE_RETRY_COUNT ]; do
-        tries=$[tries + 1]
-        echo
-        echo "-----------------------------------------------------------------"
-        echo "ant deployManagedBeta - Attempt $tries of $PACKAGE_AVAILABLE_RETRY_COUNT"
-        echo "-----------------------------------------------------------------"
-        echo
-        runAntTarget deployManagedBeta
-        if [[ $? -eq 0 ]]; then break; fi
-    done
-    if [[ $? -ne 0 ]]; then exit 1; fi
+    #tries=0
+    #while [ $tries -lt $PACKAGE_AVAILABLE_RETRY_COUNT ]; do
+    #    tries=$[tries + 1]
+    #    echo
+    #    echo "-----------------------------------------------------------------"
+    #    echo "ant deployManagedBeta - Attempt $tries of $PACKAGE_AVAILABLE_RETRY_COUNT"
+    #    echo "-----------------------------------------------------------------"
+    #    echo
+    #    runAntTarget deployManagedBeta
+    #    if [[ $? -eq 0 ]]; then break; fi
+    #done
+    #if [[ $? -ne 0 ]]; then exit 1; fi
 
-    echo
-    echo "-----------------------------------------------------------------"
-    echo "ant runAllTests: Testing $PACKAGE_VERSION in beta org"
-    echo "-----------------------------------------------------------------"
-    echo
-    runAntTarget runAllTestsManaged
-    if [[ $? -ne 0 ]]; then exit 1; fi
+    #echo
+    #echo "-----------------------------------------------------------------"
+    #echo "ant runAllTests: Testing $PACKAGE_VERSION in beta org"
+    #echo "-----------------------------------------------------------------"
+    #echo
+    #runAntTarget runAllTestsManaged
+    #if [[ $? -ne 0 ]]; then exit 1; fi
     
     if [ "$GITHUB_USERNAME" != "" ]; then   
         # Create GitHub Release
