@@ -247,27 +247,27 @@ if [ $BUILD_TYPE == "master" ]; then
     if [[ $? -ne 0 ]]; then exit 1; fi
  
     # Test beta
-    echo
-    echo "-----------------------------------------------------------------"
-    echo "ant deployManagedBeta - Install beta and test in beta org"
-    echo "-----------------------------------------------------------------"
-    echo
+    #echo
+    #echo "-----------------------------------------------------------------"
+    #echo "ant deployManagedBeta - Install beta and test in beta org"
+    #echo "-----------------------------------------------------------------"
+    #echo
 
     # Set the APEX_TEST_NAME_* environment variables for the build type
-    if [ "$APEX_TEST_NAME_MATCH_PACKAGING" != "" ]; then
-        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_PACKAGING
-    elif [ "$APEX_TEST_NAME_MATCH_GLOBAL" != "" ]; then
-        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_GLOBAL
-    else
-        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_CUMULUSCI
-    fi
-    if [ "$APEX_TEST_NAME_EXCLUDE_PACKAGING" != "" ]; then
-        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_PACKAGING
-    elif [ "$APEX_TEST_NAME_EXCLUDE_GLOBAL" != "" ]; then
-        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_GLOBAL
-    else
-        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_CUMULUSCI
-    fi
+    #if [ "$APEX_TEST_NAME_MATCH_PACKAGING" != "" ]; then
+    #    export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_PACKAGING
+    #elif [ "$APEX_TEST_NAME_MATCH_GLOBAL" != "" ]; then
+    #    export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_GLOBAL
+    #else
+    #    export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_CUMULUSCI
+    #fi
+    #if [ "$APEX_TEST_NAME_EXCLUDE_PACKAGING" != "" ]; then
+    #    export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_PACKAGING
+    #elif [ "$APEX_TEST_NAME_EXCLUDE_GLOBAL" != "" ]; then
+    #    export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_GLOBAL
+    #else
+    #    export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_CUMULUSCI
+    #fi
 
     #export SF_USERNAME=$SF_USERNAME_BETA
     #export SF_PASSWORD=$SF_PASSWORD_BETA
@@ -297,6 +297,7 @@ if [ $BUILD_TYPE == "master" ]; then
     #runAntTarget runAllTestsManaged
     #if [[ $? -ne 0 ]]; then exit 1; fi
     
+    export PACKAGE_VERSION=`grep PACKAGE_VERSION package.properties | sed -e 's/PACKAGE_VERSION=//g'`
     if [ "$GITHUB_USERNAME" != "" ]; then   
         # Create GitHub Release
         echo
