@@ -356,9 +356,9 @@ if [ $BUILD_TYPE == "master" ]; then
 elif [ $BUILD_TYPE == "feature" ]; then
     pip install --upgrade PyGithub==1.25.1
     echo "Running custom_motivis.py to see if Feature build is needed"
-    dobuild=$(python $CUMULUSCI_PATH/ci/github/custom_motivis.py)
-
-    if [ $dobuild = True]; then
+    export dobuild=$(python $CUMULUSCI_PATH/ci/github/custom_motivis.py)
+    echo "Response from custom_motivis, should we do this CI Build (was this a developer commit)?  --> $dobuild"
+    if $dobuild; then
         # Set the APEX_TEST_NAME_* environment variables for the build type
         if [ "$APEX_TEST_NAME_MATCH_FEATURE" != "" ]; then
             export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_FEATURE
