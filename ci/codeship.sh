@@ -354,7 +354,7 @@ if [ $BUILD_TYPE == "master" ]; then
 
 # Feature branch commit, build and test in local unmanaged package
 elif [ $BUILD_TYPE == "feature" ]; then
-
+    pip install --upgrade PyGithub==1.25.1
     echo "Running custom_motivis.py to see if Feature build is needed"
     export dobuild=$(python $CUMULUSCI_PATH/ci/github/custom_motivis.py)
 
