@@ -354,33 +354,40 @@ if [ $BUILD_TYPE == "master" ]; then
 
 # Feature branch commit, build and test in local unmanaged package
 elif [ $BUILD_TYPE == "feature" ]; then
-    # Set the APEX_TEST_NAME_* environment variables for the build type
-    if [ "$APEX_TEST_NAME_MATCH_FEATURE" != "" ]; then
-        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_FEATURE
-    elif [ "$APEX_TEST_NAME_MATCH_GLOBAL" != "" ]; then
-        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_GLOBAL
-    else
-        export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_CUMULUSCI
+
+    echo "Running custom_motivis.py to see if Feature build is needed"
+    export dobuild=$(python custom_motivis.py)
+
+    if $dobuild; then
+        # Set the APEX_TEST_NAME_* environment variables for the build type
+        if [ "$APEX_TEST_NAME_MATCH_FEATURE" != "" ]; then
+            export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_FEATURE
+        elif [ "$APEX_TEST_NAME_MATCH_GLOBAL" != "" ]; then
+            export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_GLOBAL
+        else
+            export APEX_TEST_NAME_MATCH=$APEX_TEST_NAME_MATCH_CUMULUSCI
+        fi
+        if [ "$APEX_TEST_NAME_EXCLUDE_FEATURE" != "" ]; then
+            export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_FEATURE
+        elif [ "$APEX_TEST_NAME_EXCLUDE_GLOBAL" != "" ]; then
+            export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_GLOBAL
+        else
+            export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_CUMULUSCI
+        fi
+        
+        # Get org credentials from env
+        export SF_USERNAME=$SF_USERNAME_FEATURE
+        export SF_PASSWORD=$SF_PASSWORD_FEATURE
+        export SF_SERVERURL=$SF_SERVERURL_FEATURE
+        
+        echo "Got org credentials for feature org from env"
+        
+        # Deploy to feature org
+        echo "Running ant deployCI"
+        runAntTarget deployCI
+        if [[ $? != 0 ]]; then exit 1; fi
     fi
-    if [ "$APEX_TEST_NAME_EXCLUDE_FEATURE" != "" ]; then
-        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_FEATURE
-    elif [ "$APEX_TEST_NAME_EXCLUDE_GLOBAL" != "" ]; then
-        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_GLOBAL
-    else
-        export APEX_TEST_NAME_EXCLUDE=$APEX_TEST_NAME_EXCLUDE_CUMULUSCI
-    fi
-    
-    # Get org credentials from env
-    export SF_USERNAME=$SF_USERNAME_FEATURE
-    export SF_PASSWORD=$SF_PASSWORD_FEATURE
-    export SF_SERVERURL=$SF_SERVERURL_FEATURE
-    
-    echo "Got org credentials for feature org from env"
-    
-    # Deploy to feature org
-    echo "Running ant deployCI"
-    runAntTarget deployCI
-    if [[ $? != 0 ]]; then exit 1; fi
+
 
 # Dev/QA branch commit, build and test in unmanaged package in QA org, in persistent way
 elif [ $BUILD_TYPE == "qa" ]; then
