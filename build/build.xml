@@ -279,9 +279,9 @@
         
         <!-- Deploy any unpackaged metadata bundles needed after the deployment -->
         <antcall target="deployUnpackagedPost" />
+        <echo>check for runall tests  -  ${env.BUILD_TYPE}</echo>
         <if>
             <not><equals arg1="${env.BUILD_TYPE}" arg2="feature" /></not>
-            <echo>check for runall tests  -  ${env.BUILD_TYPE}</echo>
             <then>
             <!-- Run all tests -->
             <antcall target="runAllTests" />
