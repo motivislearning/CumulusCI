@@ -25,7 +25,7 @@ fi
 if [[ $CI_BRANCH == $MASTER_BRANCH ]]; then
     BUILD_TYPE='master'
 elif [[ $CI_BRANCH == $PREFIX_FEATURE* ]]; then
-    BUILD_TYPE='feature'
+    export BUILD_TYPE='feature'
 elif [[ $CI_BRANCH == $PREFIX_BETA* ]]; then
     BUILD_TYPE='beta'
 elif [[ $CI_BRANCH == $PREFIX_RELEASE* ]]; then
