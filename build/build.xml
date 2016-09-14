@@ -284,7 +284,7 @@
             <not><equals arg1="${env.BUILD_TYPE}" arg2="feature" /></not>
             <then>
             <!-- Run all tests -->
-            <antcall target="runAllTests" />
+            <!-- <antcall target="runAllTests" /> -->
             </then>
         </if>
 
@@ -368,7 +368,7 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
         <antcall target="createManagedSrc" />
 
         <!-- Deploy src directory -->
-        <antcall target="deployWithoutTest" />
+        <antcall target="deploy" />
 
         <!-- Revert the src directory -->
         <antcall target="revertManagedSrc" />
@@ -378,9 +378,12 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
 
         <!-- Deploy any unpackaged metadata bundles needed after the deployment -->
         <antcall target="deployUnpackagedPost" />
-
+        <retry retrycount="3">
+        <echo>Sleeping for 30 seconds to allow previous transaction to clear.</echo>
+        <sleep seconds="30"/>
         <!-- Run all tests -->
         <antcall target="runAllTestsManaged" />
+        </retry>
 
         <antcall target="postDeployCIPackageOrg" />
     </target>
