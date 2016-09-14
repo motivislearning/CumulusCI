@@ -378,13 +378,13 @@ rolling back merged features....so the QA branch is essentially a "dev" branch o
 
         <!-- Deploy any unpackaged metadata bundles needed after the deployment -->
         <antcall target="deployUnpackagedPost" />
-        <retry retrycount="3">
         <echo>Sleeping for 30 seconds to allow previous transaction to clear.</echo>
         <sleep seconds="30"/>
+
+        
         <!-- Run all tests -->
         <antcall target="runAllTestsManaged" />
-        </retry>
-
+      
         <antcall target="postDeployCIPackageOrg" />
     </target>
 
