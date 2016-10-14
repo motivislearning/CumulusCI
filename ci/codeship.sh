@@ -231,7 +231,7 @@ if [ $BUILD_TYPE == "master" ]; then
     export BUILD_NAME="$PACKAGE Build $CI_BUILD_NUMBER"
     export BUILD_WORKSPACE=`pwd`
     export BUILD_COMMIT="$CI_COMMIT_ID"
-    pip install --upgrade selenium
+    pip install --upgrade selenium==2.53.6
     pip install --upgrade requests
     #apt-get install python-dev libffi-dev libssl-dev
     pip install --upgrade ndg-httpsclient 
